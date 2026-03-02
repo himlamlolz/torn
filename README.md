@@ -5,9 +5,9 @@
 **Fast auto-scroll + export all caches including Armor**
 A Tampermonkey userscript for [Torn City](https://www.torn.com)
 
-[![Install on Greasy Fork](https://img.shields.io/badge/Install%20on-Greasy%20Fork-brightgreen?style=for-the-badge&logo=greasyfork&logoColor=white)](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter-fast-auto-scroll-armor)
-[![Version](https://img.shields.io/badge/Version-9.1-blue?style=for-the-badge)]()
-[![Applies To](https://img.shields.io/badge/Applies%20To-torn.com-red?style=for-the-badge)]()
+[![Install on Greasy Fork](https://pfst.cf2.poecdn.net/base/image/4142f826eed32fca8a5fbe6975aeeece2014daa1aa797e414aa53086b43926f8?pmaid=578621195)](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter-fast-auto-scroll-armor)
+[![Version](https://pfst.cf2.poecdn.net/base/image/4bf429f656f0916e3265c33b83b7db55609ec6d218c6c10befd54f59433671f9?pmaid=578621194)]()
+[![Applies To](https://pfst.cf2.poecdn.net/base/image/00bcbb142fdc7f55e4f5ca6561f710085189cd0bf2920ee889837785f9639002?pmaid=578621196)]()
 
 </div>
 
@@ -15,26 +15,28 @@ A Tampermonkey userscript for [Torn City](https://www.torn.com)
 
 ## 📋 Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Installation](#-installation)
-- [How to Use](#-how-to-use)
-- [Output Format](#-output-format)
-- [Supported Cache Types](#-supported-cache-types)
-- [Torn Cache Analyzer](#-torn-cache-analyzer)
-- [Privacy](#-privacy)
-- [Troubleshooting](#-troubleshooting)
-- [Version History](#-version-history)
-- [Author](#-author)
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [How to Use](#how-to-use)
+- [Output Format](#output-format)
+- [Supported Cache Types](#supported-cache-types)
+- [Torn Cache Analyzer](#torn-cache-analyzer)
+- [Privacy](#privacy)
+- [Troubleshooting](#troubleshooting)
+- [Version History](#version-history)
+- [Author](#author)
 
 ---
 
+<a id="overview"></a>
 ## 📖 Overview
 
 This userscript runs on [Torn City](https://www.torn.com) and lets you export your **entire cache opening log history** with a single click. It handles all cache types — Small Arms, Melee, Medium Arms, Heavy Arms, and Armor — and pairs with the **Torn Cache Analyzer** to give you full loot breakdowns, rarity stats, dry spell tracking, bonus frequencies, and trend charts over time.
 
 ---
 
+<a id="features"></a>
 ## ✨ Features
 
 | Feature | Description |
@@ -47,6 +49,7 @@ This userscript runs on [Torn City](https://www.torn.com) and lets you export yo
 
 ---
 
+<a id="installation"></a>
 ## 🔧 Installation
 
 ### 1. Install a Userscript Manager
@@ -57,7 +60,7 @@ You need a userscript manager extension installed in your browser before you can
 |---|---|
 | Chrome / Edge / Brave | [Tampermonkey](https://www.tampermonkey.net/) |
 | Firefox | [Tampermonkey](https://www.tampermonkey.net/) or [Greasemonkey](https://www.greasespot.net/) |
-| Safari (macOS / iOS) | [Userscripts](https://apps.apple.com/app/userscripts/id1463298887) |
+| Safari (macOS / iOS) | [Userscripts](https://apps.apple.com/us/app/userscripts/id1463298887) |
 
 ### 2. Install the Script
 
@@ -69,6 +72,7 @@ That's it — the script is now active on `torn.com`.
 
 ---
 
+<a id="how-to-use"></a>
 ## 🚀 How to Use
 
 ### Step 1 — Go to Your Cache Log Page
@@ -122,6 +126,7 @@ Upload your `torn_cache_logs_full.json` to the **Torn Cache Analyzer**:
 
 ---
 
+<a id="output-format"></a>
 ## 📄 Output Format
 
 The exported file is a JSON array. Each entry has the following shape:
@@ -148,6 +153,7 @@ The exported file is a JSON array. Each entry has the following shape:
 
 ---
 
+<a id="supported-cache-types"></a>
 ## 🗂️ Supported Cache Types
 
 | Cache Type | Exported | Rarity Detection | Double Bonus Detection |
@@ -160,6 +166,7 @@ The exported file is a JSON array. Each entry has the following shape:
 
 ---
 
+<a id="torn-cache-analyzer"></a>
 ## 📊 Torn Cache Analyzer
 
 The analyzer is a companion web app that reads your exported JSON file and visualizes your entire loot history. Features include:
@@ -178,6 +185,7 @@ The analyzer is a companion web app that reads your exported JSON file and visua
 
 ---
 
+<a id="privacy"></a>
 ## 🔒 Privacy
 
 This script and the analyzer have been designed with privacy as the top priority:
@@ -189,6 +197,7 @@ This script and the analyzer have been designed with privacy as the top priority
 
 ---
 
+<a id="troubleshooting"></a>
 ## ❓ Troubleshooting
 
 <details>
@@ -228,6 +237,7 @@ A small number of entries may have unreadable or missing timestamps if the log p
 
 ---
 
+<a id="version-history"></a>
 ## 📦 Version History
 
 | Version | Date | Changes |
@@ -238,6 +248,7 @@ A small number of entries may have unreadable or missing timestamps if the log p
 
 ---
 
+<a id="author"></a>
 ## 👤 Author
 
 Made by **[HLZZ \[3129515\]](https://www.torn.com/profiles.php?XID=3129515)** on Torn City.
