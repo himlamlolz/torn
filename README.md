@@ -61,7 +61,7 @@ The userscript runs directly on [torn.com](https://www.torn.com) inside your bro
 <a id="cache-analyzer"></a>
 ### 📊 Cache Analyzer — Website
 
-The Cache Analyzer is a companion web app that reads the JSON file exported by the userscript and visualizes your entire loot history. You upload your file locally — it is never sent anywhere.
+The Cache Analyzer is a companion web app hosted at **[torn-cache-dashboard.vercel.app](https://torn-cache-dashboard.vercel.app/)** that reads the JSON file exported by the userscript and visualizes your entire loot history. You upload your file locally — it is never sent anywhere.
 
 **Key features:**
 
@@ -102,7 +102,7 @@ The script is now active on `torn.com` automatically.
 
 The analyzer is a standalone website — no installation needed. Just open it in your browser and upload your exported file:
 
-**[👉 Open the Torn Cache Analyzer](#)** *(link your site URL here)*
+**[👉 Open the Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)**
 
 ---
 
@@ -156,7 +156,7 @@ Once scrolling is complete and all entries are visible:
 
 ### Step 4 — Analyze Your Data
 
-1. Open the **[Torn Cache Analyzer](#)**.
+1. Open the **[Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)**.
 2. Click **"Choose JSON File"** and select your downloaded `torn_cache_logs_full.json`.
 3. Your full loot history loads immediately — no account or login required.
 
@@ -211,7 +211,7 @@ Both the userscript and the analyzer have been designed with privacy as the top 
 
 - The userscript reads log data directly from Torn's own page DOM — it makes no external requests of its own
 - The JSON export is generated and downloaded entirely on your device
-- The analyzer reads your file locally using the browser's built-in File API
+- The analyzer at [torn-cache-dashboard.vercel.app](https://torn-cache-dashboard.vercel.app/) reads your file locally using the browser's built-in File API
 - There are **no external servers**, **no analytics**, **no tracking**, and **no accounts** of any kind — in either component
 
 ---
