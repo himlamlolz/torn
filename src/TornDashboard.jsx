@@ -12,6 +12,7 @@ const TORN_LOG_URL      = "https://www.torn.com/page.php?sid=log";
 const TORN_CACHE_LOG_URL = "https://www.torn.com/page.php?sid=log&log=2615";
 
 const DATE_PRESETS = [
+  { label: "All Time", getValue: () => ["", ""] },
   { label: "Last Month",    getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 1);       return [fmt(s), fmt(now)]; }},
   { label: "Last 3 Months", getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 3);       return [fmt(s), fmt(now)]; }},
   { label: "Last 6 Months", getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 6);       return [fmt(s), fmt(now)]; }},
@@ -22,7 +23,6 @@ const DATE_PRESETS = [
   { label: "2023", getValue: () => ["2023-01-01", "2023-12-31"] },
   { label: "2022", getValue: () => ["2022-01-01", "2022-12-31"] },
   { label: "2021", getValue: () => ["2021-01-01", "2021-12-31"] },
-  { label: "All Time", getValue: () => ["", ""] },
 ];
 
 function fmt(d) { return d.toISOString().split("T")[0]; }
@@ -310,6 +310,10 @@ function Footer({ light }) {
           <a href="https://www.torn.com/forums.php#/p=threads&f=10&t=16416628&b=0&a=0" target="_blank" rel="noopener noreferrer" className={shopCls}>HLZZ's RW Marketplace</a>
         </div>
         <p className={`text-xs ${textCls}`}>Made by{" "}<a href="https://www.torn.com/profiles.php?XID=3129515" target="_blank" rel="noopener noreferrer" className={linkCls}>HLZZ [3129515]</a></p>
+        <p className={`text-xs ${textCls} flex flex-wrap justify-center gap-3`}>
+          <a href="https://github.com/himlamlolz/torn" target="_blank" rel="noopener noreferrer" className={linkCls}>Source Code</a>
+          <a href="https://github.com/himlamlolz/torn/issues" target="_blank" rel="noopener noreferrer" className={linkCls}>Report a Bug</a>
+        </p>
       </div>
     </footer>
   );
@@ -1518,10 +1522,12 @@ export default function TornDashboard() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${showAllOpenings ? "bg-indigo-600 text-white" : btnInactive}`}>
             📋 All Openings
           </button>
-          <button onClick={() => setShowBackConfirm(true)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
-            ← Back
-          </button>
+          {!showAllOpenings && (
+            <button onClick={() => setShowBackConfirm(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
+              ← Back
+            </button>
+          )}
           <button onClick={toggleLight}
             className={`p-2 rounded-lg ${light ? "bg-gray-200 hover:bg-gray-300 text-gray-700" : "bg-slate-700 hover:bg-slate-600 text-slate-200"} transition-colors`}>
             {light ? <Moon size={16} /> : <Sun size={16} />}
@@ -1560,6 +1566,17 @@ export default function TornDashboard() {
         </div>
       )}
 
+      {showAllOpenings ? (
+        <>
+          <button onClick={() => setShowAllOpenings(false)}
+            aria-label="Back to Dashboard"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
+            ← Back to Dashboard
+          </button>
+          <AllOpeningsTab data={filtered} light={light} />
+        </>
+      ) : (
+        <>
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
         {TABS.map(t => (
@@ -1599,10 +1616,6 @@ export default function TornDashboard() {
           </p>
         )}
       </Card>
-
-      {showAllOpenings && (
-        <AllOpeningsTab data={filtered} light={light} />
-      )}
 
       {active.length === 0 ? (
         <EmptyState message={`No ${isAll ? "cache" : tab} drops found for this selection`} light={light} />
@@ -1783,6 +1796,8 @@ export default function TornDashboard() {
             </ResponsiveContainer>
           </Card>
         </>
+      )}
+      </>
       )}
 
       <Footer light={light} />
