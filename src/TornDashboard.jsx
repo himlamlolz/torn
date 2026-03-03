@@ -5,8 +5,10 @@ import { Sun, Moon, Copy, Check, ChevronDown, ChevronUp, Upload, Info, AlertTria
 const RARITY_COLORS = { Yellow: "#facc15", Orange: "#fb923c", Red: "#ef4444" };
 const TABS = ["All Cache Drops", "Small Arms", "Melee", "Medium Arms", "Heavy Arms", "Armor"];
 
-const ANALYZER_URL   = "https://torn-cache-dashboard.vercel.app/";
-const GREASYFORK_URL = "https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter";
+const ANALYZER_URL      = "https://torn-cache-dashboard.vercel.app/";
+const GREASYFORK_URL    = "https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter";
+const TORN_LOG_URL      = "https://www.torn.com/page.php?sid=log";
+const TORN_CACHE_LOG_URL = "https://www.torn.com/page.php?sid=log&log=2615";
 
 const DATE_PRESETS = [
   { label: "Last Month",    getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 1);       return [fmt(s), fmt(now)]; }},
@@ -524,10 +526,17 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
   const stepSub = light ? "text-indigo-700" : "text-indigo-300";
 
   // Updated tutorial: users can now install directly from Greasy Fork
+  // Each step is [title, desc, optionalButtons?] where buttons = [{label, href}]
   const steps = [
     ["Install Tampermonkey",         "Get the Tampermonkey browser extension from your browser's extension store (Chrome, Firefox, Edge, Safari)."],
     ["Install the Script from Greasy Fork", `Click the button below (or visit ${GREASYFORK_URL}) and click "Install this script". The script is now active on torn.com automatically.`],
-    ["Go to Your Torn Log Page",     `Navigate to torn.com/page.php?sid=log. A purple "📦 Go to Cache Logs" button will appear — click it to jump straight to the cache log. Or navigate directly to torn.com/page.php?sid=log&log=2615.`],
+    ["Go to Your Torn Log Page",
+      `Navigate to your Torn log page. The script will show a purple "📦 Go to Cache Logs" button to jump straight to the cache log, or use the direct link below.`,
+      [
+        { label: "📋 Open Torn Log Page",   href: TORN_LOG_URL },
+        { label: "📦 Open Cache Log Directly", href: TORN_CACHE_LOG_URL },
+      ]
+    ],
     ["Auto-Scroll to Load All Logs", `Click "⚡ Fast Auto Scroll" to load all your cache log entries. A notification will appear at the bottom when scrolling is complete.`],
     ["Export & Upload",              `Click "💾 Export Logs" to download torn_cache_logs.json. The analyzer will open automatically — then upload your file above.`],
   ];
@@ -576,12 +585,27 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
           </button>
           {showTutorial && (
             <div className="mt-5 space-y-4">
-              {steps.map(([title, desc], idx) => (
+              {steps.map(([title, desc, buttons], idx) => (
                 <div key={idx} className={`${stepBg} border rounded-lg p-4 flex gap-3`}>
                   <span className={`${stepNum} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5`}>{idx + 1}</span>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-sm">{title}</p>
                     <p className={`text-xs mt-1 ${stepSub}`}>{desc}</p>
+                    {buttons && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {buttons.map(({ label, href }) => (
+                          <a
+                            key={href}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs"
+                          >
+                            {label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -598,7 +622,7 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
               href={GREASYFORK_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 transition-colors text-white font-semibold px-5 py-2.5 rounded-lg text-sm"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 transition-colors text-white font-semibold px-5 py-2.5 rounded-lg text-sm"
             >
               Install from Greasy Fork
             </a>
