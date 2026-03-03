@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContai
 import { Sun, Moon, Copy, Check, ChevronDown, ChevronUp, Upload, Info, AlertTriangle, Plus, Download } from "lucide-react";
 
 const RARITY_COLORS = { Yellow: "#facc15", Orange: "#fb923c", Red: "#ef4444" };
-const TABS = ["All Cache Drops", "Small Arms", "Melee", "Medium Arms", "Heavy Arms", "Armor", "All Openings"];
+const TABS = ["Cache Statistics", "Small Arms", "Melee", "Medium Arms", "Heavy Arms", "Armor"];
 const DEFAULT_TAB = TABS[0];
 
 const ANALYZER_URL      = "https://torn-cache-dashboard.vercel.app/";
@@ -516,7 +516,7 @@ function ExportInfoModal({ onClose, light }) {
         <ol className="space-y-3 list-none">
           <li className={row}>
             <span className="shrink-0 font-bold">1.</span>
-            <span><span className={heading}>Choose a category tab</span> — select <em>All Cache Drops</em> to export everything, or pick a specific weapon type (e.g. <em>Medium Arms</em>) to export only that category.</span>
+            <span><span className={heading}>Choose a category tab</span> — select <em>Cache Statistics</em> to export everything, or pick a specific weapon type (e.g. <em>Medium Arms</em>) to export only that category.</span>
           </li>
           <li className={row}>
             <span className="shrink-0 font-bold">2.</span>
@@ -1214,6 +1214,7 @@ export default function TornDashboard() {
     try { return localStorage.getItem("torn-sort-dir") || "desc"; } catch { return "desc"; }
   });
   const [showAllRare,  setShowAllRare]  = useState(false);
+  const [showAllOpenings, setShowAllOpenings] = useState(false);
   const [tableScrolled, setTableScrolled] = useState(false);
   const tableContainerRef = useRef(null);
 
@@ -1279,17 +1280,16 @@ export default function TornDashboard() {
   }, [data]);
 
   const buckets = useMemo(() => ({
-    "All Cache Drops": filtered,
+    "Cache Statistics": filtered,
     Melee:             filtered.filter(d => d.cacheType === "Melee"),
     "Small Arms":      filtered.filter(d => d.cacheType === "Small Arms"),
     "Medium Arms":     filtered.filter(d => d.cacheType === "Medium Arms"),
     "Heavy Arms":      filtered.filter(d => d.cacheType === "Heavy Arms"),
     Armor:             filtered.filter(d => d.cacheType === "Armor"),
-    "All Openings":    filtered,
   }), [filtered]);
 
   const active  = buckets[tab] || [];
-  const isAll   = tab === "All Cache Drops";
+  const isAll   = tab === "Cache Statistics";
   const isArmor = tab === "Armor";
 
   const rarityCounts = useMemo(() => {
@@ -1514,6 +1514,10 @@ export default function TornDashboard() {
             title="Export help">
             <Info size={15} />
           </button>
+          <button onClick={() => setShowAllOpenings(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${showAllOpenings ? "bg-indigo-600 text-white" : btnInactive}`}>
+            📋 All Openings
+          </button>
           <button onClick={() => setShowBackConfirm(true)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
             ← Back
@@ -1596,9 +1600,11 @@ export default function TornDashboard() {
         )}
       </Card>
 
-      {tab === "All Openings" ? (
+      {showAllOpenings && (
         <AllOpeningsTab data={filtered} light={light} />
-      ) : active.length === 0 ? (
+      )}
+
+      {active.length === 0 ? (
         <EmptyState message={`No ${isAll ? "cache" : tab} drops found for this selection`} light={light} />
       ) : (
         <>
