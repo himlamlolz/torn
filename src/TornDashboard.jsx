@@ -944,61 +944,37 @@ export default function TornDashboard() {
   const xInterval = trendData.length > 16 ? Math.ceil(trendData.length / 8) : 0;
 
   const exportCSV = useCallback(() => {
-    const total = active.length;
-    const yellowPct = total > 0 ? ((rarityCounts.Yellow / total) * 100).toFixed(1) : "0.0";
-    const orangePct = total > 0 ? ((rarityCounts.Orange / total) * 100).toFixed(1) : "0.0";
-    const redPct    = total > 0 ? ((rarityCounts.Red    / total) * 100).toFixed(1) : "0.0";
-    const times = active.map(d => parseTimestamp(d.timestamp)).filter(Boolean);
-    const minDate = times.length ? formatShortDate(new Date(Math.min(...times.map(t => t.getTime())))) : "N/A";
-    const maxDate = times.length ? formatShortDate(new Date(Math.max(...times.map(t => t.getTime())))) : "N/A";
+    const headers = ["Date", "Cache Type", "Item", "Bonus", "Double Bonus", "Rarity"];
     const rows = [
-      ["Metric", "Value", "Percentage"],
-      ["Tab",            tab,                       ""],
-      ["Total Drops",    total,                     ""],
-      ["Yellow Drops",   rarityCounts.Yellow,       `${yellowPct}%`],
-      ["Orange Drops",   rarityCounts.Orange,       `${orangePct}%`],
-      ["Red Drops",      rarityCounts.Red,          `${redPct}%`],
-      ["Date Range From", minDate,                  ""],
-      ["Date Range To",   maxDate,                  ""],
+      headers,
+      ...active.map(d => [
+        d.timestamp || "",
+        d.cacheType  || "",
+        d.weaponName || "",
+        d.bonus      || "",
+        d.doubleBonus ? "Yes" : "No",
+        d.rarity     || "",
+      ]),
     ];
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `torn_cache_summary_${todayStr()}.csv`;
+    a.download = `torn_cache_drops_${todayStr()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [active, rarityCounts, tab]);
+  }, [active]);
 
   const exportJSON = useCallback(() => {
-    const total = active.length;
-    const times = active.map(d => parseTimestamp(d.timestamp)).filter(Boolean);
-    const minDate = times.length ? fmt(new Date(Math.min(...times.map(t => t.getTime())))) : null;
-    const maxDate = times.length ? fmt(new Date(Math.max(...times.map(t => t.getTime())))) : null;
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      summary: {
-        tab,
-        totalDrops: total,
-        dateRange: { from: minDate, to: maxDate },
-        rarityCounts: { ...rarityCounts },
-        rarityPercentages: {
-          Yellow: total > 0 ? ((rarityCounts.Yellow / total) * 100).toFixed(1) : "0.0",
-          Orange: total > 0 ? ((rarityCounts.Orange / total) * 100).toFixed(1) : "0.0",
-          Red:    total > 0 ? ((rarityCounts.Red    / total) * 100).toFixed(1) : "0.0",
-        },
-      },
-      drops: active,
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(active, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `torn_cache_analyzed_${todayStr()}.json`;
+    a.download = `torn_cache_drops_${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [active, rarityCounts, tab]);
+  }, [active]);
 
   if (!data) return <LandingPage onFileLoad={handleFileLoad} light={light} onToggleLight={toggleLight} />;
 
