@@ -498,6 +498,52 @@ function HorizontalBarChart({ data, color, light, total }) {
   );
 }
 
+function ExportInfoModal({ onClose, light }) {
+  const card = light ? "bg-white border-gray-200 text-gray-800" : "bg-slate-800 border-slate-700 text-slate-200";
+  const heading = light ? "text-gray-900 font-semibold" : "text-white font-semibold";
+  const muted = light ? "text-gray-500" : "text-slate-400";
+  const row = "flex gap-2 text-sm";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black opacity-50" onClick={onClose} />
+      <div className={`relative z-10 rounded-xl border p-6 max-w-md w-full shadow-2xl space-y-4 ${card}`}>
+        <div className="flex items-center justify-between">
+          <h2 className={`text-base ${heading}`}>Export Tutorial</h2>
+          <button onClick={onClose} className={`text-lg leading-none font-bold ${muted} hover:opacity-70`}>×</button>
+        </div>
+        <ol className="space-y-3 list-none">
+          <li className={row}>
+            <span className="shrink-0 font-bold">1.</span>
+            <span><span className={heading}>Choose a category tab</span> — select <em>All Cache Drops</em> to export everything, or pick a specific weapon type (e.g. <em>Medium Arms</em>) to export only that category.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">2.</span>
+            <span><span className={heading}>Apply date filters</span> (optional) — use the date pickers or preset buttons to narrow the export to a specific time range.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">3.</span>
+            <span><span className={heading}>CSV</span> — exports a spreadsheet with one row per drop: Date, Cache Type, Item, Bonus, Double Bonus, Rarity. Great for Excel or Google Sheets.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">4.</span>
+            <span><span className={heading}>JSON</span> — exports the raw drops array. This file can be re-imported via <em>Add File</em> to merge with a future session's data.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">5.</span>
+            <span><span className={heading}>Filename</span> — the downloaded file is automatically named with the active category and today's date, e.g. <code className="font-mono text-xs px-1 py-0.5 rounded bg-black/10">torn_cache_drops_medium_arms_2026-03-03.csv</code>.</span>
+          </li>
+        </ol>
+        <div className="flex justify-end">
+          <button onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${light ? "bg-gray-100 hover:bg-gray-200 text-gray-700" : "bg-slate-700 hover:bg-slate-600 text-slate-200"}`}>
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ConfirmModal({ message, onConfirm, onCancel, light }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -704,6 +750,7 @@ export default function TornDashboard() {
 
   const [data,            setData]            = useState(null);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [showExportInfo,  setShowExportInfo]  = useState(false);
   const [mergeError,      setMergeError]      = useState(null);
   const [mergeInfo,       setMergeInfo]       = useState(null);
 
@@ -1029,6 +1076,10 @@ export default function TornDashboard() {
         />
       )}
 
+      {showExportInfo && (
+        <ExportInfoModal onClose={() => setShowExportInfo(false)} light={light} />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-lg font-bold">Torn Cache Dashboard</h1>
@@ -1049,6 +1100,11 @@ export default function TornDashboard() {
             title="Export full analyzed data as JSON">
             <Download size={13} />
             JSON
+          </button>
+          <button onClick={() => setShowExportInfo(true)}
+            className={`p-2 rounded-lg ${btnInactive} transition-colors`}
+            title="Export help">
+            <Info size={15} />
           </button>
           <button onClick={() => setShowBackConfirm(true)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
