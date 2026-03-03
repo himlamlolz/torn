@@ -5,6 +5,11 @@ import { Sun, Moon, Copy, Check, ChevronDown, ChevronUp, Upload, Info, AlertTria
 const RARITY_COLORS = { Yellow: "#facc15", Orange: "#fb923c", Red: "#ef4444" };
 const TABS = ["All Cache Drops", "Small Arms", "Melee", "Medium Arms", "Heavy Arms", "Armor"];
 
+const ANALYZER_URL      = "https://torn-cache-dashboard.vercel.app/";
+const GREASYFORK_URL    = "https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter";
+const TORN_LOG_URL      = "https://www.torn.com/page.php?sid=log";
+const TORN_CACHE_LOG_URL = "https://www.torn.com/page.php?sid=log&log=2615";
+
 const DATE_PRESETS = [
   { label: "Last Month",    getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 1);       return [fmt(s), fmt(now)]; }},
   { label: "Last 3 Months", getValue: () => { const now = new Date(); const s = new Date(now); s.setMonth(s.getMonth() - 3);       return [fmt(s), fmt(now)]; }},
@@ -47,12 +52,12 @@ function validateCacheData(parsed) {
   return null;
 }
 
-// ── CHANGED: version bump 9.0 → 9.1; added quick-jump button on the main log page ──
+// ── CHANGED: version bump 9.1 → 9.3; renamed file, added auto-open analyzer tab ──
 const TAMPERMONKEY_SCRIPT = `// ==UserScript==
 // @name         Torn Cache Log Exporter (Fast Auto Scroll + Armor)
 // @namespace    torn.cache.export
-// @version      9.1
-// @description  Fast auto-scroll + export all caches including Armor; quick-jump button on main log page
+// @version      9.3
+// @description  Fast auto-scroll + export all caches including Armor; quick-jump button on main log page; auto-opens analyzer after export
 // @match        https://www.torn.com/page.php?sid=log*
 // @grant        none
 // ==/UserScript==
@@ -198,9 +203,10 @@ const TAMPERMONKEY_SCRIPT = `// ==UserScript==
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "torn_cache_logs_full.json";
+        a.download = "torn_cache_logs.json";
         a.click();
         URL.revokeObjectURL(url);
+        setTimeout(() => { window.open("${ANALYZER_URL}", "_blank"); }, 500);
     }
 
     window.addEventListener("load", () => { setTimeout(addUI, 1000); });
@@ -519,14 +525,20 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
   const stepNum = "bg-indigo-600 text-white";
   const stepSub = light ? "text-indigo-700" : "text-indigo-300";
 
-  // CHANGED: Step 4 now mentions the new "📦 Go to Cache Logs" button
+  // Updated tutorial: users can now install directly from Greasy Fork
+  // Each step is [title, desc, optionalButtons?] where buttons = [{label, href}]
   const steps = [
     ["Install Tampermonkey",         "Get the Tampermonkey browser extension from your browser's extension store (Chrome, Firefox, Edge, Safari)."],
-    ["Create New Script",            `Click the Tampermonkey icon → "Create a new script" → Delete everything in the editor.`],
-    ["Paste the Script & Save",      "Copy the script below and paste it into the Tampermonkey editor. Press Ctrl+S (or Cmd+S) to save."],
-    ["Go to Your Torn Log Page",     `Navigate to torn.com/page.php?sid=log. A purple "📦 Go to Cache Logs" button will appear — click it to jump straight to the cache log (log=2615). Or navigate there directly.`],
-    ["Auto-Scroll to Load All Logs", `Click "Fast Auto Scroll" to load all your cache log entries. Click "Stop" when done.`],
-    ["Export & Upload",              `Click "Export Logs" to download torn_cache_logs_full.json, then upload it above.`],
+    ["Install the Script from Greasy Fork", `Click the button below (or visit ${GREASYFORK_URL}) and click "Install this script". The script is now active on torn.com automatically.`],
+    ["Go to Your Torn Log Page",
+      `Navigate to your Torn log page. The script will show a purple "📦 Go to Cache Logs" button to jump straight to the cache log, or use the direct link below.`,
+      [
+        { label: "📋 Open Torn Log Page",   href: TORN_LOG_URL },
+        { label: "📦 Open Cache Log Directly", href: TORN_CACHE_LOG_URL },
+      ]
+    ],
+    ["Auto-Scroll to Load All Logs", `Click "⚡ Fast Auto Scroll" to load all your cache log entries. A notification will appear at the bottom when scrolling is complete.`],
+    ["Export & Upload",              `Click "💾 Export Logs" to download torn_cache_logs.json. The analyzer will open automatically — then upload your file above.`],
   ];
 
   return (
@@ -546,7 +558,7 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
         <div className={`${cardBg} border rounded-xl p-8 text-center`}>
           <Upload size={40} className={`mx-auto mb-4 ${subtext}`} />
           <h2 className="text-lg font-semibold mb-2">Upload Cache Data</h2>
-          <p className={`${subtext} text-sm mb-5`}>Select your exported torn_cache_logs_full.json file</p>
+          <p className={`${subtext} text-sm mb-5`}>Select your exported torn_cache_logs.json file</p>
           {loading ? (
             <div className={`flex items-center justify-center gap-2 py-3 ${subtext}`}>
               <Loader size={18} className="animate-spin" />
@@ -573,12 +585,27 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
           </button>
           {showTutorial && (
             <div className="mt-5 space-y-4">
-              {steps.map(([title, desc], idx) => (
+              {steps.map(([title, desc, buttons], idx) => (
                 <div key={idx} className={`${stepBg} border rounded-lg p-4 flex gap-3`}>
                   <span className={`${stepNum} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5`}>{idx + 1}</span>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-sm">{title}</p>
                     <p className={`text-xs mt-1 ${stepSub}`}>{desc}</p>
+                    {buttons && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {buttons.map(({ label, href }) => (
+                          <a
+                            key={href}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs"
+                          >
+                            {label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -587,21 +614,38 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
         </div>
 
         <div className={`${cardBg} border rounded-xl p-6`}>
-          <button onClick={() => setShowScript(!showScript)} className="flex items-center justify-between w-full text-left">
-            <h2 className="text-lg font-semibold">Tampermonkey Script</h2>
-            {showScript ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </button>
-          {showScript && (
-            <div className="mt-4">
-              <div className="flex justify-end mb-2">
-                <button onClick={copyScript}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${copied ? "bg-green-600 text-white" : light ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200" : "bg-indigo-600 text-white hover:bg-indigo-500"}`}>
-                  {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy Script</>}
-                </button>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Get the Script</h2>
+          </div>
+          <div className="flex flex-col items-start gap-3">
+            <a
+              href={GREASYFORK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 transition-colors text-white font-semibold px-5 py-2.5 rounded-lg text-sm"
+            >
+              Install from Greasy Fork
+            </a>
+            <p className={`text-xs ${subtext}`}>Recommended — click Install on the Greasy Fork page and the script activates on torn.com automatically.</p>
+          </div>
+          <div className={`mt-5 pt-4 border-t ${light ? "border-gray-200" : "border-slate-700"}`}>
+            <button onClick={() => setShowScript(!showScript)} className={`flex items-center gap-1.5 text-xs font-medium ${light ? "text-indigo-600 hover:text-indigo-500" : "text-indigo-400 hover:text-indigo-300"} transition-colors`}>
+              {showScript ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              {showScript ? "Hide" : "Show"} manual install (for local use)
+            </button>
+            {showScript && (
+              <div className="mt-3">
+                <p className={`text-xs mb-3 ${subtext}`}>If you're running this site locally, copy the script below and create a new userscript in Tampermonkey manually.</p>
+                <div className="flex justify-end mb-2">
+                  <button onClick={copyScript}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${copied ? "bg-green-600 text-white" : light ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200" : "bg-indigo-600 text-white hover:bg-indigo-500"}`}>
+                    {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy Script</>}
+                  </button>
+                </div>
+                <pre className={`${codeBg} rounded-lg p-4 text-xs overflow-auto max-h-64 leading-relaxed`}>{TAMPERMONKEY_SCRIPT}</pre>
               </div>
-              <pre className={`${codeBg} rounded-lg p-4 text-xs overflow-auto max-h-64 leading-relaxed`}>{TAMPERMONKEY_SCRIPT}</pre>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <Footer light={light} />
