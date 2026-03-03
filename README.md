@@ -18,6 +18,7 @@
 - [Components](#components)
   - [Log Exporter (Userscript)](#log-exporter)
   - [Cache Analyzer (Website)](#cache-analyzer)
+  - [All Openings View](#all-openings)
 - [Installation](#installation)
 - [How to Use](#how-to-use)
 - [Output Format](#output-format)
@@ -75,6 +76,22 @@ The Cache Analyzer is a companion web app hosted at **[torn-cache-dashboard.verc
 - **File merging** — combine multiple export files with automatic duplicate detection
 
 > 🔒 The analyzer runs entirely in your browser. Your file is read locally using the browser's File API and is never uploaded to any server.
+
+---
+
+<a id="all-openings"></a>
+### 📋 All Openings View
+
+The **All Openings** panel is a separate view (accessible via the **📋 All Openings** button in the top-right of the dashboard) that shows your **complete, unfiltered opening history** as a sortable, searchable table — separate from the statistics tabs.
+
+It is split into two sub-tabs:
+
+- **Weapons** — shows all weapon cache openings (Small Arms, Melee, Medium Arms, Heavy Arms) with columns for Rarity, Weapon Name, Bonus 1, Bonus 2, Cache Type, and Date. Supports filtering by rarity, cache type, and bonus text search.
+- **Armor** — shows all armor cache openings with columns for Rarity, Armor Name, Bonus, and Date. Supports filtering by rarity and bonus text search.
+
+Both sub-tabs are fully sortable by any column and show a live result count. Filters persist between sessions.
+
+> 💡 This view is ideal for looking up a specific drop, verifying a bonus you remember, or browsing your full history in a structured table.
 
 ---
 
