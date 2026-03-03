@@ -65,12 +65,12 @@ function validateCacheData(parsed) {
   return null;
 }
 
-// ── CHANGED: version bump 9.1 → 9.3; renamed file, added auto-open analyzer tab ──
+// ── CHANGED: version bump 9.3 → 9.4; removed auto-scroll loop, single jump only ──
 const TAMPERMONKEY_SCRIPT = `// ==UserScript==
-// @name         Torn Cache Log Exporter (Fast Auto Scroll + Armor)
+// @name         Torn Cache Log Exporter
 // @namespace    torn.cache.export
-// @version      9.3
-// @description  Fast auto-scroll + export all caches including Armor; quick-jump button on main log page; auto-opens analyzer after export
+// @version      9.4
+// @description  Jump to bottom + export all caches including Armor; quick-jump button on main log page; auto-opens analyzer after export
 // @match        https://www.torn.com/page.php?sid=log*
 // @grant        none
 // ==/UserScript==
@@ -112,8 +112,6 @@ const TAMPERMONKEY_SCRIPT = `// ==UserScript==
     }
 
     // ── Cache log page (log=2615) ─────────────────────────────────────────────
-    let scrolling = false;
-    let stopRequested = false;
 
     function addUI() {
         if (document.getElementById("cacheExportContainer")) return;
@@ -126,11 +124,9 @@ const TAMPERMONKEY_SCRIPT = `// ==UserScript==
         container.style.display = "flex";
         container.style.flexDirection = "column";
         container.style.gap = "8px";
-        const scrollBtn = createButton("Fast Auto Scroll", "#2563eb", startScroll);
-        const stopBtn = createButton("Stop", "#dc2626", () => stopRequested = true);
-        const exportBtn = createButton("Export Logs", "#16a34a", exportLogs);
-        container.appendChild(scrollBtn);
-        container.appendChild(stopBtn);
+        const jumpBtn = createButton("\\u2B07\\uFE0F Jump to Bottom", "#2563eb", jumpToBottom);
+        const exportBtn = createButton("\\uD83D\\uDCBE Export Logs", "#16a34a", exportLogs);
+        container.appendChild(jumpBtn);
         container.appendChild(exportBtn);
         document.body.appendChild(container);
     }
@@ -149,22 +145,28 @@ const TAMPERMONKEY_SCRIPT = `// ==UserScript==
         return btn;
     }
 
-    async function startScroll() {
-        if (scrolling) return;
-        scrolling = true;
-        stopRequested = false;
-        let lastHeight = 0;
-        let stableCount = 0;
-        while (stableCount < 6 && !stopRequested) {
-            window.scrollTo(0, document.body.scrollHeight);
-            await sleep(300);
-            const newHeight = document.body.scrollHeight;
-            if (newHeight === lastHeight) { stableCount++; } else { stableCount = 0; lastHeight = newHeight; }
-        }
-        scrolling = false;
+    function jumpToBottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+        showNotification("Jumped to bottom. Scroll back up manually to load more entries, then export.");
     }
 
-    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function showNotification(msg) {
+        const n = document.createElement("div");
+        n.innerText = msg;
+        n.style.position = "fixed";
+        n.style.bottom = "20px";
+        n.style.left = "50%";
+        n.style.transform = "translateX(-50%)";
+        n.style.background = "#1e293b";
+        n.style.color = "white";
+        n.style.padding = "10px 20px";
+        n.style.borderRadius = "8px";
+        n.style.zIndex = "99999";
+        n.style.fontSize = "14px";
+        n.style.boxShadow = "0 2px 10px rgba(0,0,0,0.4)";
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 4000);
+    }
 
     function parseCacheType(text) {
         if (text.includes("Armor Cache")) return "Armor";
@@ -216,10 +218,10 @@ const TAMPERMONKEY_SCRIPT = `// ==UserScript==
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "torn_cache_logs.json";
+        a.download = "torn_cache_logs_full.json";
         a.click();
         URL.revokeObjectURL(url);
-        setTimeout(() => { window.open("${ANALYZER_URL}", "_blank"); }, 500);
+        setTimeout(() => { window.open("https://torn-two.vercel.app/", "_blank"); }, 500);
     }
 
     window.addEventListener("load", () => { setTimeout(addUI, 1000); });

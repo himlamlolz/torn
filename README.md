@@ -5,7 +5,7 @@
 **A two-part toolkit for exporting and analyzing your Torn City cache opening history**
 
 [![Install on Greasy Fork](https://img.shields.io/badge/Install-Greasy%20Fork-red?style=for-the-badge)](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter)
-[![Version](https://img.shields.io/badge/Version-9.3-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Version-9.4-blue?style=for-the-badge)]()
 [![Applies To](https://img.shields.io/badge/Applies%20To-torn.com-green?style=for-the-badge)]()
 
 </div>
@@ -44,15 +44,14 @@ Neither component requires an account, login, or any external server. Everything
 <a id="log-exporter"></a>
 ### 🔧 Log Exporter — Userscript
 
-The userscript runs directly on [torn.com](https://www.torn.com) inside your browser via a userscript manager such as Tampermonkey. It adds a small control panel to your Torn cache log page that lets you auto-scroll through your entire history and export it as a single JSON file with one click — then automatically opens the analyzer for you.
+The userscript runs directly on [torn.com](https://www.torn.com) inside your browser via a userscript manager such as Tampermonkey. It adds a small control panel to your Torn cache log page with a **Jump to Bottom** button and an **Export Logs** button — export your cache history as a single JSON file with one click, then automatically opens the analyzer for you.
 
 **Key features:**
 
 | Feature | Description |
 |---|---|
-| ⚡ Fast Auto Scroll | Automatically scrolls the log page to load all entries — no manual scrolling needed |
 | 📦 Quick-Jump Button | A purple *"Go to Cache Logs"* button appears on any Torn log page for instant navigation |
-| 💾 One-Click Export | Downloads your full cache history as `torn_cache_logs.json` and opens the analyzer in a new tab |
+| 💾 One-Click Export | Downloads your full cache history as `torn_cache_logs_full.json` and opens the analyzer in a new tab |
 | 🛡️ Full Cache Support | Correctly parses all 5 cache types including Armor |
 | 🔒 100% Private | Everything runs locally in your browser — no data ever leaves your device |
 
@@ -127,20 +126,17 @@ https://www.torn.com/page.php?sid=log&log=2615
 
 ---
 
-### Step 2 — Auto-Scroll to Load All Entries
+### Step 2 — Load Your Log Entries
 
-Torn loads log entries dynamically as you scroll down. To capture your **full history**, all entries need to be loaded into the page before you export.
+Torn loads log entries dynamically as you scroll. To capture more history, you need to scroll the page to load entries before exporting.
 
-1. Look for the script's control panel on the page. It has three buttons: **Fast Auto Scroll**, **Stop**, and **Export Logs**.
-2. Click **⚡ Fast Auto Scroll**.
-3. The page will begin scrolling automatically and loading entries. A notification will appear at the bottom of the screen once scrolling is complete.
-4. If you need to interrupt the process, click **Stop**.
-
-> [!WARNING]
-> Do not navigate away from the page while scrolling is in progress. Doing so will unload all entries and you'll need to start over.
+1. Look for the script's control panel on the right side of the page. It has two buttons: **⬇️ Jump to Bottom** and **💾 Export Logs**.
+2. Click **⬇️ Jump to Bottom** to scroll to the end of the currently loaded entries.
+3. A notification will appear: *"Jumped to bottom. Scroll back up manually to load more entries, then export."*
+4. Scroll back up — Torn will load more entries as you scroll. Repeat the jump as needed until all desired entries are visible.
 
 > [!TIP]
-> How long this takes depends on your log history. A few months of data typically takes under a minute. Years of logs may take a few minutes.
+> You don't need to load your entire history at once. Export whenever you have the entries you want — you can always merge multiple exports in the analyzer later.
 
 ---
 
@@ -149,7 +145,7 @@ Torn loads log entries dynamically as you scroll down. To capture your **full hi
 Once scrolling is complete and all entries are visible:
 
 1. Click **💾 Export Logs**.
-2. A file named **`torn_cache_logs.json`** will download automatically to your default downloads folder.
+2. A file named **`torn_cache_logs_full.json`** will download automatically to your default downloads folder.
 3. The **Torn Cache Analyzer** will open automatically in a new tab, ready for you to upload your file.
 
 > [!TIP]
@@ -159,7 +155,7 @@ Once scrolling is complete and all entries are visible:
 
 ### Step 4 — Analyze Your Data
 
-1. On the **[Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)** (which opened automatically after export), upload your downloaded `torn_cache_logs.json`.
+1. On the **[Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)** (which opened automatically after export), upload your downloaded `torn_cache_logs_full.json`.
 2. Your full loot history loads immediately — no account or login required.
 
 From here you can explore rarity stats, dry spell history, bonus frequencies, trend charts, and more. Use the date filter to zoom in on specific time periods, or use "Add File" to merge in older exports.
@@ -229,23 +225,16 @@ Make sure your userscript manager (e.g. Tampermonkey) is enabled and the script 
 </details>
 
 <details>
-<summary><strong>Auto-scroll stopped before loading all entries</strong></summary>
-
-The script detects completion by checking if the page height has stopped increasing across several consecutive checks. On slow connections, new entries might not load fast enough between checks. Simply click **Fast Auto Scroll** again to continue loading from where it left off.
-
-</details>
-
-<details>
 <summary><strong>The export file is empty or has very few entries</strong></summary>
 
-This almost always means the page didn't scroll far enough before you exported. Make sure the auto-scroll runs to completion (watch for the notification at the bottom of the screen) before clicking Export Logs.
+Make sure you've scrolled far enough to load the entries you want before clicking Export Logs. Use the **Jump to Bottom** button and then scroll back up to load more entries.
 
 </details>
 
 <details>
 <summary><strong>The analyzer says "This doesn't look like a valid cache export"</strong></summary>
 
-Make sure you're uploading the file produced by this script (`torn_cache_logs.json`) and not some other JSON file. The analyzer expects the specific fields that this script outputs.
+Make sure you're uploading the file produced by this script (`torn_cache_logs_full.json`) and not some other JSON file. The analyzer expects the specific fields that this script outputs.
 
 </details>
 
@@ -270,11 +259,12 @@ Your browser may have blocked the new tab from opening. Check for a blocked pop-
 
 | Version | Date | Changes |
 |---|---|---|
-| **9.3** | 2026-03-03 | Latest release — see [Greasy Fork](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter) for details |
+| **9.4** | 2026-03-03 | Published rule-compliant version to Greasy Fork |
+| **9.3** | 2026-03-03 | Removed auto-scroll loop; replaced with single Jump to Bottom; rule-compliant release |
 | **9.2** | 2026-03-02 | Export now auto-opens the Torn Cache Analyzer in a new tab; export file renamed to `torn_cache_logs.json` |
 | **9.1** | 2026-03-02 | Added quick-jump "📦 Go to Cache Logs" button on all non-cache log pages |
 | **9.0** | — | Added full Armor Cache support |
-| Earlier | — | Fast auto-scroll engine, multi-cache type export, double bonus detection |
+| Earlier | — | Fast auto-scroll engine (pre-rule-change), multi-cache type export, double bonus detection |
 
 ---
 
