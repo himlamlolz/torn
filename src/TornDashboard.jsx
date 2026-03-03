@@ -943,6 +943,8 @@ export default function TornDashboard() {
   const xHeight   = trendData.length > 12 ? 48 : 30;
   const xInterval = trendData.length > 16 ? Math.ceil(trendData.length / 8) : 0;
 
+  const tabSlug = useMemo(() => tab.toLowerCase().replace(/\s+/g, "_"), [tab]);
+
   const exportCSV = useCallback(() => {
     const headers = ["Date", "Cache Type", "Item", "Bonus", "Double Bonus", "Rarity"];
     const rows = [
@@ -961,20 +963,20 @@ export default function TornDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `torn_cache_drops_${todayStr()}.csv`;
+    a.download = `torn_cache_drops_${tabSlug}_${todayStr()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [active]);
+  }, [active, tabSlug]);
 
   const exportJSON = useCallback(() => {
     const blob = new Blob([JSON.stringify(active, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `torn_cache_drops_${todayStr()}.json`;
+    a.download = `torn_cache_drops_${tabSlug}_${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [active]);
+  }, [active, tabSlug]);
 
   if (!data) return <LandingPage onFileLoad={handleFileLoad} light={light} onToggleLight={toggleLight} />;
 
