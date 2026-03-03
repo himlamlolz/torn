@@ -625,8 +625,8 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
         { label: "📦 Open Cache Log Directly", href: TORN_CACHE_LOG_URL },
       ]
     ],
-    ["Auto-Scroll to Load All Logs", `Click "⚡ Fast Auto Scroll" to load all your cache log entries. A notification will appear at the bottom when scrolling is complete.`],
-    ["Export & Upload",              `Click "💾 Export Logs" to download torn_cache_logs.json. The analyzer will open automatically — then upload your file above.`],
+    ["Load Your Log Entries", `Click "⬇️ Jump to Bottom" to scroll down and load entries. Then scroll back up — Torn will load more as you go. Repeat until all desired entries are visible.`],
+    ["Export & Upload",              `Click "💾 Export Logs" to download torn_cache_logs_full.json. The analyzer will open automatically — then upload your file above.`],
   ];
 
   return (
@@ -646,7 +646,7 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
         <div className={`${cardBg} border rounded-xl p-8 text-center`}>
           <Upload size={40} className={`mx-auto mb-4 ${subtext}`} />
           <h2 className="text-lg font-semibold mb-2">Upload Cache Data</h2>
-          <p className={`${subtext} text-sm mb-5`}>Select your exported torn_cache_logs.json file</p>
+          <p className={`${subtext} text-sm mb-5`}>Select your exported torn_cache_logs_full.json file</p>
           {loading ? (
             <div className="py-3 space-y-3 animate-pulse">
               <div className={`h-4 rounded-full ${light ? "bg-gray-200" : "bg-slate-700"} w-3/4 mx-auto`} />
