@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
-import { Sun, Moon, Copy, Check, ChevronDown, ChevronUp, Upload, Info, AlertTriangle, Plus, Loader } from "lucide-react";
+import { Sun, Moon, Copy, Check, ChevronDown, ChevronUp, Upload, Info, AlertTriangle, Plus, Download } from "lucide-react";
 
 const RARITY_COLORS = { Yellow: "#facc15", Orange: "#fb923c", Red: "#ef4444" };
 const TABS = ["All Cache Drops", "Small Arms", "Melee", "Medium Arms", "Heavy Arms", "Armor"];
+const DEFAULT_TAB = TABS[0];
 
 const ANALYZER_URL      = "https://torn-cache-dashboard.vercel.app/";
 const GREASYFORK_URL    = "https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter";
@@ -25,6 +26,18 @@ const DATE_PRESETS = [
 ];
 
 function fmt(d) { return d.toISOString().split("T")[0]; }
+function todayStr() { return new Date().toISOString().split("T")[0]; }
+
+function useCopyToClipboard(timeout = 1500) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback((value) => {
+    navigator.clipboard.writeText(String(value)).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), timeout);
+    }).catch(() => {});
+  }, [timeout]);
+  return [copied, copy];
+}
 
 function formatShortDate(dt) {
   if (!dt) return null;
@@ -381,26 +394,53 @@ function Card({ title, subtitle, children, light }) {
 }
 
 function Stat({ label, value, light }) {
+  const [copied, copy] = useCopyToClipboard();
   return (
-    <div className={`${light ? "bg-white border-gray-200" : "bg-slate-800 border-slate-700"} border rounded-lg p-4`}>
+    <div className={`${light ? "bg-white border-gray-200" : "bg-slate-800 border-slate-700"} border rounded-lg p-4 group`}>
       <div className={`text-xs uppercase tracking-wide ${light ? "text-gray-500" : "text-slate-400"}`}>{label}</div>
-      <div className={`text-2xl font-bold mt-1 ${light ? "text-gray-900" : "text-white"}`}>{value}</div>
+      <div className="flex items-end justify-between mt-1">
+        <div className={`text-2xl font-bold ${light ? "text-gray-900" : "text-white"}`}>{value}</div>
+        <button onClick={() => copy(value)} title={copied ? "Copied!" : `Copy ${label}`}
+          className={`p-1 rounded mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity ${light ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-slate-500 hover:text-slate-300 hover:bg-slate-700"}`}>
+          {copied ? <Check size={12} /> : <Copy size={12} />}
+        </button>
+      </div>
     </div>
   );
 }
 
 function RarityCountCard({ rarity, count, total, light }) {
+  const [copied, copy] = useCopyToClipboard();
   const pct   = total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
   const color = RARITY_COLORS[rarity] || "#6b7280";
   return (
-    <div className={`${light ? "bg-white border-gray-200" : "bg-slate-800 border-slate-700"} border rounded-lg p-4`}>
-      <div className="flex items-center gap-2 mb-1">
-        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-        <div className={`text-xs uppercase tracking-wide ${light ? "text-gray-500" : "text-slate-400"}`}>{rarity}</div>
+    <div className={`${light ? "bg-white border-gray-200" : "bg-slate-800 border-slate-700"} border rounded-lg p-4 group`}>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+          <div className={`text-xs uppercase tracking-wide ${light ? "text-gray-500" : "text-slate-400"}`}>{rarity}</div>
+        </div>
+        <button onClick={() => copy(`${rarity}: ${count} (${pct}%)`)} title={copied ? "Copied!" : `Copy ${rarity} stats`}
+          className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${light ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-slate-500 hover:text-slate-300 hover:bg-slate-700"}`}>
+          {copied ? <Check size={12} /> : <Copy size={12} />}
+        </button>
       </div>
       <div className={`text-2xl font-bold mt-1 ${light ? "text-gray-900" : "text-white"}`}>{count}</div>
       <div className="text-xs mt-1 font-semibold" style={{ color }}>{pct}% of drops</div>
     </div>
+  );
+}
+
+function CopyBtn({ value, light }) {
+  const [copied, copy] = useCopyToClipboard();
+  return (
+    <button
+      onClick={() => copy(value)}
+      title={copied ? "Copied!" : "Copy"}
+      className={`inline-flex items-center p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity ${light ? "text-gray-400 hover:text-gray-600" : "text-slate-500 hover:text-slate-300"}`}
+    >
+      {copied ? <Check size={10} /> : <Copy size={10} />}
+    </button>
   );
 }
 
@@ -453,6 +493,52 @@ function HorizontalBarChart({ data, color, light, total }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ExportInfoModal({ onClose, light }) {
+  const card = light ? "bg-white border-gray-200 text-gray-800" : "bg-slate-800 border-slate-700 text-slate-200";
+  const heading = light ? "text-gray-900 font-semibold" : "text-white font-semibold";
+  const muted = light ? "text-gray-500" : "text-slate-400";
+  const row = "flex gap-2 text-sm";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black opacity-50" onClick={onClose} />
+      <div className={`relative z-10 rounded-xl border p-6 max-w-md w-full shadow-2xl space-y-4 ${card}`}>
+        <div className="flex items-center justify-between">
+          <h2 className={`text-base ${heading}`}>Export Tutorial</h2>
+          <button onClick={onClose} className={`text-lg leading-none font-bold ${muted} hover:opacity-70`}>×</button>
+        </div>
+        <ol className="space-y-3 list-none">
+          <li className={row}>
+            <span className="shrink-0 font-bold">1.</span>
+            <span><span className={heading}>Choose a category tab</span> — select <em>All Cache Drops</em> to export everything, or pick a specific weapon type (e.g. <em>Medium Arms</em>) to export only that category.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">2.</span>
+            <span><span className={heading}>Apply date filters</span> (optional) — use the date pickers or preset buttons to narrow the export to a specific time range.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">3.</span>
+            <span><span className={heading}>CSV</span> — exports a spreadsheet with one row per drop: Date, Cache Type, Item, Bonus, Double Bonus, Rarity. Great for Excel or Google Sheets.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">4.</span>
+            <span><span className={heading}>JSON</span> — exports the raw drops array. This file can be re-imported via <em>Add File</em> to merge with a future session's data.</span>
+          </li>
+          <li className={row}>
+            <span className="shrink-0 font-bold">5.</span>
+            <span><span className={heading}>Filename</span> — the downloaded file is automatically named with the active category and today's date, e.g. <code className="font-mono text-xs px-1 py-0.5 rounded bg-black/10">torn_cache_drops_medium_arms_2026-03-03.csv</code>.</span>
+          </li>
+        </ol>
+        <div className="flex justify-end">
+          <button onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${light ? "bg-gray-100 hover:bg-gray-200 text-gray-700" : "bg-slate-700 hover:bg-slate-600 text-slate-200"}`}>
+            Got it
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -560,9 +646,11 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
           <h2 className="text-lg font-semibold mb-2">Upload Cache Data</h2>
           <p className={`${subtext} text-sm mb-5`}>Select your exported torn_cache_logs.json file</p>
           {loading ? (
-            <div className={`flex items-center justify-center gap-2 py-3 ${subtext}`}>
-              <Loader size={18} className="animate-spin" />
-              <span className="text-sm">Reading file…</span>
+            <div className="py-3 space-y-3 animate-pulse">
+              <div className={`h-4 rounded-full ${light ? "bg-gray-200" : "bg-slate-700"} w-3/4 mx-auto`} />
+              <div className={`h-4 rounded-full ${light ? "bg-gray-200" : "bg-slate-700"} w-1/2 mx-auto`} />
+              <div className={`h-9 rounded-lg ${light ? "bg-gray-200" : "bg-slate-700"} w-36 mx-auto`} />
+              <p className={`text-xs text-center ${subtext}`}>Reading file…</p>
             </div>
           ) : (
             <label className="cursor-pointer bg-indigo-600 hover:bg-indigo-500 transition-colors px-8 py-3 rounded-lg font-medium text-sm text-white inline-block">
@@ -655,11 +743,14 @@ function LandingPage({ onFileLoad, light, onToggleLight }) {
 }
 
 export default function TornDashboard() {
-  const [light, setLight] = useState(false);
+  const [light, setLight] = useState(() => {
+    try { return localStorage.getItem("torn-theme") === "light"; } catch { return false; }
+  });
   const toggleLight = useCallback(() => setLight(p => !p), []);
 
   const [data,            setData]            = useState(null);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [showExportInfo,  setShowExportInfo]  = useState(false);
   const [mergeError,      setMergeError]      = useState(null);
   const [mergeInfo,       setMergeInfo]       = useState(null);
 
@@ -697,13 +788,47 @@ export default function TornDashboard() {
     e.target.value = "";
   }, [data]);
 
-  const [tab,          setTab]          = useState("All Cache Drops");
-  const [startDate,    setStartDate]    = useState("");
-  const [endDate,      setEndDate]      = useState("");
-  const [activePreset, setActivePreset] = useState("All Time");
-  const [sortCol,      setSortCol]      = useState("date");
-  const [sortDir,      setSortDir]      = useState("desc");
+  const [tab,          setTab]          = useState(() => {
+    try { const s = localStorage.getItem("torn-tab"); return TABS.includes(s) ? s : DEFAULT_TAB; } catch { return DEFAULT_TAB; }
+  });
+  const [startDate,    setStartDate]    = useState(() => {
+    try { return localStorage.getItem("torn-start-date") || ""; } catch { return ""; }
+  });
+  const [endDate,      setEndDate]      = useState(() => {
+    try { return localStorage.getItem("torn-end-date") || ""; } catch { return ""; }
+  });
+  const [activePreset, setActivePreset] = useState(() => {
+    try { return localStorage.getItem("torn-preset") || "All Time"; } catch { return "All Time"; }
+  });
+  const [sortCol,      setSortCol]      = useState(() => {
+    try { return localStorage.getItem("torn-sort-col") || "date"; } catch { return "date"; }
+  });
+  const [sortDir,      setSortDir]      = useState(() => {
+    try { return localStorage.getItem("torn-sort-dir") || "desc"; } catch { return "desc"; }
+  });
   const [showAllRare,  setShowAllRare]  = useState(false);
+  const [tableScrolled, setTableScrolled] = useState(false);
+  const tableContainerRef = useRef(null);
+
+  useEffect(() => {
+    try { localStorage.setItem("torn-theme", light ? "light" : "dark"); } catch {}
+  }, [light]);
+  useEffect(() => {
+    try { localStorage.setItem("torn-tab", tab); } catch {}
+  }, [tab]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("torn-start-date", startDate);
+      localStorage.setItem("torn-end-date", endDate);
+      localStorage.setItem("torn-preset", activePreset);
+    } catch {}
+  }, [startDate, endDate, activePreset]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("torn-sort-col", sortCol);
+      localStorage.setItem("torn-sort-dir", sortDir);
+    } catch {}
+  }, [sortCol, sortDir]);
 
   const applyPreset = (preset) => {
     const [s, e] = preset.getValue();
@@ -865,6 +990,41 @@ export default function TornDashboard() {
   const xHeight   = trendData.length > 12 ? 48 : 30;
   const xInterval = trendData.length > 16 ? Math.ceil(trendData.length / 8) : 0;
 
+  const tabSlug = useMemo(() => tab.toLowerCase().replace(/\s+/g, "_"), [tab]);
+
+  const exportCSV = useCallback(() => {
+    const headers = ["Date", "Cache Type", "Item", "Bonus", "Double Bonus", "Rarity"];
+    const rows = [
+      headers,
+      ...active.map(d => [
+        d.timestamp || "",
+        d.cacheType  || "",
+        d.weaponName || "",
+        d.bonus      || "",
+        d.doubleBonus ? "Yes" : "No",
+        d.rarity     || "",
+      ]),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `torn_cache_drops_${tabSlug}_${todayStr()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [active, tabSlug]);
+
+  const exportJSON = useCallback(() => {
+    const blob = new Blob([JSON.stringify(active, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `torn_cache_drops_${tabSlug}_${todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [active, tabSlug]);
+
   if (!data) return <LandingPage onFileLoad={handleFileLoad} light={light} onToggleLight={toggleLight} />;
 
   const bg          = light ? "bg-gray-50"    : "bg-slate-900";
@@ -916,6 +1076,10 @@ export default function TornDashboard() {
         />
       )}
 
+      {showExportInfo && (
+        <ExportInfoModal onClose={() => setShowExportInfo(false)} light={light} />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-lg font-bold">Torn Cache Dashboard</h1>
@@ -925,6 +1089,23 @@ export default function TornDashboard() {
             Add File
             <input type="file" accept=".json" onChange={handleMergeFileSelect} className="hidden" />
           </label>
+          <button onClick={exportCSV}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}
+            title="Export summary as CSV">
+            <Download size={13} />
+            CSV
+          </button>
+          <button onClick={exportJSON}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}
+            title="Export full analyzed data as JSON">
+            <Download size={13} />
+            JSON
+          </button>
+          <button onClick={() => setShowExportInfo(true)}
+            className={`p-2 rounded-lg ${btnInactive} transition-colors`}
+            title="Export help">
+            <Info size={15} />
+          </button>
           <button onClick={() => setShowBackConfirm(true)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${btnInactive} transition-colors`}>
             ← Back
@@ -1011,13 +1192,13 @@ export default function TornDashboard() {
         <EmptyState message={`No ${isAll ? "cache" : tab} drops found for this selection`} light={light} />
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Stat label={activeTabLabel} value={active.length} light={light} />
             <Stat label="Unique Bonuses"  value={bonuses.length} light={light} />
             <Stat label={stat3Label}      value={stat3Value}     light={light} />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {["Yellow", "Orange", "Red"].map(r => (
               <RarityCountCard key={r} rarity={r} count={rarityCounts[r]} total={active.length} light={light} />
             ))}
@@ -1042,15 +1223,18 @@ export default function TornDashboard() {
                     ? (currentDays / worstDays >= 0.9 ? color : currentDays / worstDays >= 0.7 ? "#f59e0b" : null)
                     : null;
                   return (
-                    <tr key={label} className={`border-b last:border-b-0 ${light ? "border-gray-100" : "border-slate-700"}`}>
+                    <tr key={label} className={`border-b last:border-b-0 group ${light ? "border-gray-100" : "border-slate-700"}`}>
                       <td className="pt-3 pb-3 pr-2 align-top">
                         <div className="w-2 h-2 rounded-full mt-1" style={{ backgroundColor: color }} />
                       </td>
                       <td className={`pt-3 pb-3 align-top text-xs ${subtext}`}>{label}</td>
                       <td className="pt-3 pb-3 pr-2 align-top text-right">
-                        <div className="text-sm font-bold tabular-nums leading-tight"
-                          style={{ color: warnColor || (light ? "#111827" : "#f1f5f9") }}>
-                          {current} drops{warnColor && <span className="ml-0.5 text-xs">{isNearRecord ? "⚠" : "!"}</span>}
+                        <div className="flex items-center justify-end gap-1">
+                          <div className="text-sm font-bold tabular-nums leading-tight"
+                            style={{ color: warnColor || (light ? "#111827" : "#f1f5f9") }}>
+                            {current} drops{warnColor && <span className="ml-0.5 text-xs">{isNearRecord ? "⚠" : "!"}</span>}
+                          </div>
+                          <CopyBtn value={`${current} drops`} light={light} />
                         </div>
                         {current > 0 && currentDays != null && (
                           <div className="text-xs font-semibold tabular-nums leading-tight mt-0.5"
@@ -1063,7 +1247,10 @@ export default function TornDashboard() {
                         )}
                       </td>
                       <td className="pt-3 pb-3 align-top text-right">
-                        <div className="text-sm font-bold tabular-nums leading-tight" style={{ color }}>{max} drops</div>
+                        <div className="flex items-center justify-end gap-1">
+                          <div className="text-sm font-bold tabular-nums leading-tight" style={{ color }}>{max} drops</div>
+                          <CopyBtn value={`${max} drops`} light={light} />
+                        </div>
                         {worstDays != null && worstDays > 0 && (
                           <div className="text-xs font-semibold tabular-nums leading-tight mt-0.5" style={{ color }}>{worstDays}d</div>
                         )}
@@ -1089,9 +1276,16 @@ export default function TornDashboard() {
               <EmptyState message="No rare drops found for this selection" light={light} />
             ) : (
               <>
-                <div className={`overflow-auto ${showAllRare ? "" : "max-h-96"}`}>
+                <div
+                  ref={tableContainerRef}
+                  className={`overflow-auto ${showAllRare ? "" : "max-h-96"}`}
+                  onScroll={(e) => setTableScrolled(e.currentTarget.scrollTop > 0)}
+                >
                   <table className="w-full text-sm text-left">
-                    <thead className={`text-xs uppercase ${thCls} border-b sticky top-0`}>
+                    <thead
+                      className={`text-xs uppercase ${thCls} border-b sticky top-0 z-10`}
+                      style={tableScrolled ? { boxShadow: "0 2px 6px rgba(0,0,0,0.15)" } : undefined}
+                    >
                       <tr>
                         {[
                           { col: "rarity",    label: "Rarity"     },
@@ -1143,7 +1337,7 @@ export default function TornDashboard() {
           </Card>
 
           {!isAll && (
-            <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <Card title={`Bonus Frequency — ${tab}`} light={light}>
                 {bonuses.length === 0
                   ? <EmptyState message="No bonus data for this selection" light={light} />
@@ -1154,7 +1348,7 @@ export default function TornDashboard() {
                   ? <EmptyState message="No item data for this selection" light={light} />
                   : <HorizontalBarChart data={weapons} color="#38bdf8" light={light} total={active.length} />}
               </Card>
-            </>
+            </div>
           )}
 
           <Card
