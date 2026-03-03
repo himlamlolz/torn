@@ -4,9 +4,9 @@
 
 **A two-part toolkit for exporting and analyzing your Torn City cache opening history**
 
-[![Install on Greasy Fork](https://pfst.cf2.poecdn.net/base/image/4142f826eed32fca8a5fbe6975aeeece2014daa1aa797e414aa53086b43926f8?pmaid=578621195)](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter-fast-auto-scroll-armor)
-[![Version](https://pfst.cf2.poecdn.net/base/image/4bf429f656f0916e3265c33b83b7db55609ec6d218c6c10befd54f59433671f9?pmaid=578621194)]()
-[![Applies To](https://pfst.cf2.poecdn.net/base/image/00bcbb142fdc7f55e4f5ca6561f710085189cd0bf2920ee889837785f9639002?pmaid=578621196)]()
+[![Install on Greasy Fork](https://img.shields.io/badge/Install-Greasy%20Fork-red?style=for-the-badge)](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter)
+[![Version](https://img.shields.io/badge/Version-9.3-blue?style=for-the-badge)]()
+[![Applies To](https://img.shields.io/badge/Applies%20To-torn.com-green?style=for-the-badge)]()
 
 </div>
 
@@ -44,7 +44,7 @@ Neither component requires an account, login, or any external server. Everything
 <a id="log-exporter"></a>
 ### 🔧 Log Exporter — Userscript
 
-The userscript runs directly on [torn.com](https://www.torn.com) inside your browser via a userscript manager such as Tampermonkey. It adds a small control panel to your Torn cache log page that lets you auto-scroll through your entire history and export it as a single JSON file with one click.
+The userscript runs directly on [torn.com](https://www.torn.com) inside your browser via a userscript manager such as Tampermonkey. It adds a small control panel to your Torn cache log page that lets you auto-scroll through your entire history and export it as a single JSON file with one click — then automatically opens the analyzer for you.
 
 **Key features:**
 
@@ -52,7 +52,7 @@ The userscript runs directly on [torn.com](https://www.torn.com) inside your bro
 |---|---|
 | ⚡ Fast Auto Scroll | Automatically scrolls the log page to load all entries — no manual scrolling needed |
 | 📦 Quick-Jump Button | A purple *"Go to Cache Logs"* button appears on any Torn log page for instant navigation |
-| 💾 One-Click Export | Downloads your full cache history as a clean `torn_cache_logs_full.json` file |
+| 💾 One-Click Export | Downloads your full cache history as `torn_cache_logs.json` and opens the analyzer in a new tab |
 | 🛡️ Full Cache Support | Correctly parses all 5 cache types including Armor |
 | 🔒 100% Private | Everything runs locally in your browser — no data ever leaves your device |
 
@@ -89,20 +89,22 @@ To use the Log Exporter, you first need a userscript manager extension installed
 | Browser | Recommended Extension |
 |---|---|
 | Chrome / Edge / Brave | [Tampermonkey](https://www.tampermonkey.net/) |
-| Firefox | [Tampermonkey](https://www.tampermonkey.net/) or [Greasemonkey](https://www.greasespot.net/) |
+| Firefox | [Tampermonkey](https://www.tampermonkey.net/) or [Greasemonkey](https://www.greasespot.net/) or [Violentmonkey](https://violentmonkey.github.io/) |
 | Safari (macOS / iOS) | [Userscripts](https://apps.apple.com/us/app/userscripts/id1463298887) |
 
 Once your userscript manager is installed, click the button below and then click **"Install this script"** on the Greasy Fork page:
 
-**[👉 Install the Log Exporter from Greasy Fork](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter-fast-auto-scroll-armor)**
+**[👉 Install the Log Exporter from Greasy Fork](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter)**
 
 The script is now active on `torn.com` automatically.
 
 ### Part 2 — Open the Analyzer
 
-The analyzer is a standalone website — no installation needed. Just open it in your browser and upload your exported file:
+The analyzer is a standalone website — no installation needed. Just open it in your browser:
 
 **[👉 Open the Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)**
+
+> 💡 After clicking **Export Logs** in the userscript, the analyzer will automatically open in a new tab — you don't need to navigate to it manually.
 
 ---
 
@@ -121,7 +123,7 @@ Navigate directly to your cache log:
 https://www.torn.com/page.php?sid=log&log=2615
 ```
 
-> **Shortcut:** If you're already on any Torn log page, a purple **📦 Go to Cache Logs** button will automatically appear in the top-right corner of the screen. Click it to jump straight to the cache log without needing to remember the URL.
+> **Shortcut:** If you're already on any Torn log page, a purple **📦 Go to Cache Logs** button will automatically appear on the right side of the screen. Click it to jump straight to the cache log without needing to remember the URL.
 
 ---
 
@@ -129,7 +131,7 @@ https://www.torn.com/page.php?sid=log&log=2615
 
 Torn loads log entries dynamically as you scroll down. To capture your **full history**, all entries need to be loaded into the page before you export.
 
-1. Look for the script's control panel in the **top-right corner** of the page. It has three buttons: **Fast Auto Scroll**, **Stop**, and **Export Logs**.
+1. Look for the script's control panel on the page. It has three buttons: **Fast Auto Scroll**, **Stop**, and **Export Logs**.
 2. Click **⚡ Fast Auto Scroll**.
 3. The page will begin scrolling automatically and loading entries. A notification will appear at the bottom of the screen once scrolling is complete.
 4. If you need to interrupt the process, click **Stop**.
@@ -147,7 +149,8 @@ Torn loads log entries dynamically as you scroll down. To capture your **full hi
 Once scrolling is complete and all entries are visible:
 
 1. Click **💾 Export Logs**.
-2. A file named **`torn_cache_logs_full.json`** will download automatically to your default downloads folder.
+2. A file named **`torn_cache_logs.json`** will download automatically to your default downloads folder.
+3. The **Torn Cache Analyzer** will open automatically in a new tab, ready for you to upload your file.
 
 > [!TIP]
 > To build up history over time, you can export at different points and later **merge multiple exports** in the analyzer using its "Add File" button. Duplicate entries are automatically detected and skipped.
@@ -156,9 +159,8 @@ Once scrolling is complete and all entries are visible:
 
 ### Step 4 — Analyze Your Data
 
-1. Open the **[Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)**.
-2. Click **"Choose JSON File"** and select your downloaded `torn_cache_logs_full.json`.
-3. Your full loot history loads immediately — no account or login required.
+1. On the **[Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)** (which opened automatically after export), upload your downloaded `torn_cache_logs.json`.
+2. Your full loot history loads immediately — no account or login required.
 
 From here you can explore rarity stats, dry spell history, bonus frequencies, trend charts, and more. Use the date filter to zoom in on specific time periods, or use "Add File" to merge in older exports.
 
@@ -229,7 +231,7 @@ Make sure your userscript manager (e.g. Tampermonkey) is enabled and the script 
 <details>
 <summary><strong>Auto-scroll stopped before loading all entries</strong></summary>
 
-The script detects completion by checking if the page height has stopped increasing across 6 consecutive checks. On slow connections, new entries might not load fast enough between checks. Simply click **Fast Auto Scroll** again to continue loading from where it left off.
+The script detects completion by checking if the page height has stopped increasing across several consecutive checks. On slow connections, new entries might not load fast enough between checks. Simply click **Fast Auto Scroll** again to continue loading from where it left off.
 
 </details>
 
@@ -243,7 +245,7 @@ This almost always means the page didn't scroll far enough before you exported. 
 <details>
 <summary><strong>The analyzer says "This doesn't look like a valid cache export"</strong></summary>
 
-Make sure you're uploading the file produced by this script (`torn_cache_logs_full.json`) and not some other JSON file. The analyzer expects the specific fields that this script outputs.
+Make sure you're uploading the file produced by this script (`torn_cache_logs.json`) and not some other JSON file. The analyzer expects the specific fields that this script outputs.
 
 </details>
 
@@ -254,6 +256,13 @@ A small number of entries may have unreadable or missing timestamps if the log p
 
 </details>
 
+<details>
+<summary><strong>The analyzer didn't open automatically after export</strong></summary>
+
+Your browser may have blocked the new tab from opening. Check for a blocked pop-up notification in your browser's address bar and allow it, or navigate to the analyzer manually at [torn-cache-dashboard.vercel.app](https://torn-cache-dashboard.vercel.app/).
+
+</details>
+
 ---
 
 <a id="version-history"></a>
@@ -261,6 +270,8 @@ A small number of entries may have unreadable or missing timestamps if the log p
 
 | Version | Date | Changes |
 |---|---|---|
+| **9.3** | 2026-03-03 | Latest release — see [Greasy Fork](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter) for details |
+| **9.2** | 2026-03-02 | Export now auto-opens the Torn Cache Analyzer in a new tab; export file renamed to `torn_cache_logs.json` |
 | **9.1** | 2026-03-02 | Added quick-jump "📦 Go to Cache Logs" button on all non-cache log pages |
 | **9.0** | — | Added full Armor Cache support |
 | Earlier | — | Fast auto-scroll engine, multi-cache type export, double bonus detection |
@@ -270,13 +281,18 @@ A small number of entries may have unreadable or missing timestamps if the log p
 <a id="author"></a>
 ## 👤 Author
 
-Made by **[HLZZ \[3129515\]](https://www.torn.com/profiles.php?XID=3129515)** on Torn City.
+Made by **himlamlolz** on Torn City.
+
+- 🌐 [Torn Cache Analyzer](https://torn-cache-dashboard.vercel.app/)
+- 💻 [GitHub Source Code](https://github.com)
+- 🐛 [Report a Bug](https://greasyfork.org/en/scripts/568130-torn-cache-log-exporter/feedback)
 
 ---
 
 <div align="center">
 
-🗡️ Want to buy or sell RW weapons?
-**[Visit HLZZ's RW Marketplace on the Torn forums](https://www.torn.com/forums.php#/p=threads&f=10&t=16416628&b=0&a=0)**
+*The analyzer does not store, collect, or transmit any of your data.*
+*Everything runs entirely in your browser — your log file is read locally and never leaves your device.*
+*No accounts, no tracking, no servers.*
 
 </div>
