@@ -258,8 +258,11 @@ function getTrendGrouping(startDate, endDate, active) {
     spanDays = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24);
   } else if (active.length > 0) {
     const dates = active.map(d => parseTimestamp(d.timestamp)).filter(Boolean);
-    if (dates.length > 1)
-      spanDays = (Math.max(...dates.map(d => d.getTime())) - Math.min(...dates.map(d => d.getTime()))) / (1000 * 60 * 60 * 24);
+    if (dates.length > 1) {
+      const ms = dates.map(d => d.getTime());
+      const [minMs, maxMs] = ms.reduce(([mn, mx], t) => [t < mn ? t : mn, t > mx ? t : mx], [ms[0], ms[0]]);
+      spanDays = (maxMs - minMs) / (1000 * 60 * 60 * 24);
+    }
   }
   if (spanDays === null || spanDays > 180) return "monthly";
   if (spanDays > 42) return "weekly";
@@ -813,7 +816,7 @@ function AllOpeningsWeapons({ data, light }) {
   const sorted = useMemo(() => {
     const withBonuses = filtered.map(d => {
       const [b1, b2] = parseBonuses(d.bonus);
-      return { ...d, bonus1: b1, bonus2: b2 };
+      return { ...d, bonus1: b1, bonus2: b2, _ts: parseTimestamp(d.timestamp)?.getTime() ?? 0 };
     });
     return [...withBonuses].sort((a, b) => {
       let av, bv;
@@ -823,7 +826,7 @@ function AllOpeningsWeapons({ data, light }) {
         case "bonus1":    av = (a.bonus1||"").toLowerCase(); bv = (b.bonus1||"").toLowerCase(); break;
         case "bonus2":    av = (a.bonus2||"").toLowerCase(); bv = (b.bonus2||"").toLowerCase(); break;
         case "cacheType": av = (a.cacheType||"").toLowerCase(); bv = (b.cacheType||"").toLowerCase(); break;
-        default:          av = parseTimestamp(a.timestamp)?.getTime()||0; bv = parseTimestamp(b.timestamp)?.getTime()||0;
+        default:          av = a._ts; bv = b._ts;
       }
       if (av < bv) return filters.sortDir === "asc" ? -1 : 1;
       if (av > bv) return filters.sortDir === "asc" ? 1 : -1;
@@ -996,18 +999,21 @@ function AllOpeningsArmor({ data, light }) {
     return true;
   }), [data, filters]);
 
-  const sorted = useMemo(() => [...filtered].sort((a, b) => {
-    let av, bv;
-    switch (filters.sortCol) {
-      case "rarity": { const o = { Red: 3, Orange: 2, Yellow: 1 }; av = o[a.rarity]||0; bv = o[b.rarity]||0; break; }
-      case "item":   av = (a.weaponName||"").toLowerCase(); bv = (b.weaponName||"").toLowerCase(); break;
-      case "bonus":  av = (a.bonus||"").toLowerCase(); bv = (b.bonus||"").toLowerCase(); break;
-      default:       av = parseTimestamp(a.timestamp)?.getTime()||0; bv = parseTimestamp(b.timestamp)?.getTime()||0;
-    }
-    if (av < bv) return filters.sortDir === "asc" ? -1 : 1;
-    if (av > bv) return filters.sortDir === "asc" ? 1 : -1;
-    return 0;
-  }), [filtered, filters.sortCol, filters.sortDir]);
+  const sorted = useMemo(() => {
+    const withTime = filtered.map(d => ({ ...d, _ts: parseTimestamp(d.timestamp)?.getTime() ?? 0 }));
+    return withTime.sort((a, b) => {
+      let av, bv;
+      switch (filters.sortCol) {
+        case "rarity": { const o = { Red: 3, Orange: 2, Yellow: 1 }; av = o[a.rarity]||0; bv = o[b.rarity]||0; break; }
+        case "item":   av = (a.weaponName||"").toLowerCase(); bv = (b.weaponName||"").toLowerCase(); break;
+        case "bonus":  av = (a.bonus||"").toLowerCase(); bv = (b.bonus||"").toLowerCase(); break;
+        default:       av = a._ts; bv = b._ts;
+      }
+      if (av < bv) return filters.sortDir === "asc" ? -1 : 1;
+      if (av > bv) return filters.sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filtered, filters.sortCol, filters.sortDir]);
 
   const handleSort = (col) => {
     setFilters(f => ({
@@ -1255,11 +1261,13 @@ export default function TornDashboard() {
 
   const filtered = useMemo(() => {
     if (!data) return [];
+    const start = startDate ? new Date(startDate + "T00:00:00Z") : null;
+    const end   = endDate   ? new Date(endDate   + "T23:59:59Z") : null;
     return data.filter(d => {
       const dt = parseTimestamp(d.timestamp);
       if (!dt) return false;
-      if (startDate && dt < new Date(startDate + "T00:00:00Z")) return false;
-      if (endDate   && dt > new Date(endDate   + "T23:59:59Z")) return false;
+      if (start && dt < start) return false;
+      if (end   && dt > end)   return false;
       return true;
     });
   }, [data, startDate, endDate]);
@@ -1279,8 +1287,9 @@ export default function TornDashboard() {
     if (!data || data.length === 0) return null;
     const times = data.map(d => parseTimestamp(d.timestamp)).filter(Boolean).map(d => d.getTime());
     if (times.length === 0) return null;
+    const [minMs, maxMs] = times.reduce(([mn, mx], t) => [t < mn ? t : mn, t > mx ? t : mx], [times[0], times[0]]);
     const cacheTypes = [...new Set(data.map(d => d.cacheType).filter(Boolean))].sort();
-    return { total: data.length, minDate: formatShortDate(new Date(Math.min(...times))), maxDate: formatShortDate(new Date(Math.max(...times))), cacheTypes };
+    return { total: data.length, minDate: formatShortDate(new Date(minMs)), maxDate: formatShortDate(new Date(maxMs)), cacheTypes };
   }, [data]);
 
   const buckets = useMemo(() => ({
@@ -1319,19 +1328,22 @@ export default function TornDashboard() {
     return false;
   }), [active, isArmor]);
 
-  const sortedRareDrops = useMemo(() => [...rareDrops].sort((a, b) => {
-    let av, bv;
-    switch (sortCol) {
-      case "rarity":    { const o = { Red: 3, Orange: 2, Yellow: 1 }; av = o[a.rarity]||0; bv = o[b.rarity]||0; break; }
-      case "item":      av = (a.weaponName||"").toLowerCase(); bv = (b.weaponName||"").toLowerCase(); break;
-      case "cacheType": av = (a.cacheType||"").toLowerCase();  bv = (b.cacheType||"").toLowerCase();  break;
-      case "bonus":     av = (a.bonus||"").toLowerCase();      bv = (b.bonus||"").toLowerCase();      break;
-      default:          av = parseTimestamp(a.timestamp)?.getTime()||0; bv = parseTimestamp(b.timestamp)?.getTime()||0;
-    }
-    if (av < bv) return sortDir === "asc" ? -1 :  1;
-    if (av > bv) return sortDir === "asc" ?  1 : -1;
-    return 0;
-  }), [rareDrops, sortCol, sortDir]);
+  const sortedRareDrops = useMemo(() => {
+    const withTime = rareDrops.map(d => ({ ...d, _ts: parseTimestamp(d.timestamp)?.getTime() ?? 0 }));
+    return withTime.sort((a, b) => {
+      let av, bv;
+      switch (sortCol) {
+        case "rarity":    { const o = { Red: 3, Orange: 2, Yellow: 1 }; av = o[a.rarity]||0; bv = o[b.rarity]||0; break; }
+        case "item":      av = (a.weaponName||"").toLowerCase(); bv = (b.weaponName||"").toLowerCase(); break;
+        case "cacheType": av = (a.cacheType||"").toLowerCase();  bv = (b.cacheType||"").toLowerCase();  break;
+        case "bonus":     av = (a.bonus||"").toLowerCase();      bv = (b.bonus||"").toLowerCase();      break;
+        default:          av = a._ts; bv = b._ts;
+      }
+      if (av < bv) return sortDir === "asc" ? -1 :  1;
+      if (av > bv) return sortDir === "asc" ?  1 : -1;
+      return 0;
+    });
+  }, [rareDrops, sortCol, sortDir]);
 
   const drySpells = useMemo(() => {
     if (!active.length) return null;
