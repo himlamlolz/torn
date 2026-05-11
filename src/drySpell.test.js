@@ -87,16 +87,18 @@ describe("computeSpell – drop counts", () => {
 
 describe("computeSpell – worstDays (bug fix)", () => {
   /**
-   * Reported case:
-   *   dataset starts much earlier (2026-01-01) with non-orange drops.
-   *   First orange appears 2026-04-21 08:16:00.
-   *   Second (and last loaded) orange appears 2026-05-11 02:47:09.
+   * The leading gap (time from the first drop in the dataset to the first
+   * qualifying drop) CAN be the longest dry spell and must be included.
    *
-   * BEFORE the fix: worstDays included the gap from firstDropTime (2026-01-01)
-   *   to firstOrange (2026-04-21) ≈ 110 days, which inflated the result.
-   * AFTER the fix: worstDays = gap between two oranges ≈ 20 days.
+   * Scenario:
+   *   – Dataset starts 2026-01-01 with many non-orange drops (~110 days).
+   *   – First orange: 2026-04-21.
+   *   – Second (last) orange: 2026-05-11.
+   *
+   * Longest dry spell = Jan 1 → Apr 21 ≈ 110 days (the leading period).
+   * The gap between the two oranges (~20 days) is shorter.
    */
-  it("does NOT include the span before the first qualifying drop (bug fix)", () => {
+  it("includes the leading span (before the first qualifying drop) in worstDays", () => {
     const drops = [
       // many non-orange drops at the start of the dataset (≈110 days before first orange)
       drop("00:00:00 - 01/01/26", "Yellow"),
@@ -113,12 +115,25 @@ describe("computeSpell – worstDays (bug fix)", () => {
 
     const result = computeSpell(drops, d => d.rarity === "Orange");
 
-    // The gap between the two oranges: 21 Apr → 11 May ≈ 20 days
-    expect(result.worstDays).toBeGreaterThanOrEqual(19);
-    expect(result.worstDays).toBeLessThanOrEqual(21);
+    // Leading gap Jan 1 → Apr 21 ≈ 110 days IS the longest dry spell.
+    expect(result.worstDays).toBeGreaterThanOrEqual(109);
+    expect(result.worstDays).toBeLessThanOrEqual(111);
 
-    // Must NOT be ~110 (start of dataset to first orange) or ~232
-    expect(result.worstDays).toBeLessThan(50);
+    // The gap between the two oranges is only ~20 days, not the worst.
+    expect(result.worstDays).toBeGreaterThan(20);
+  });
+
+  it("uses the leading gap when it is the largest (leading > inter-occurrence > trailing)", () => {
+    // Leading gap of 20 days, then oranges close together, then small trailing gap.
+    const drops = [
+      drop("00:00:00 - 01/01/26", "Yellow"),   // leading non-qualifying
+      drop("00:00:00 - 21/01/26", "Orange"),   // first qualifying, 20 days after start
+      drop("00:00:00 - 24/01/26", "Orange"),   // +3 days gap
+      drop("00:00:00 - 26/01/26", "Yellow"),   // +2 days trailing
+    ];
+    const result = computeSpell(drops, d => d.rarity === "Orange");
+    // leading: 20d, inter: 3d, trailing: 2d → worstDays = 20
+    expect(result.worstDays).toBe(20);
   });
 
   it("measures the largest gap between consecutive qualifying drops", () => {
@@ -152,15 +167,15 @@ describe("computeSpell – worstDays (bug fix)", () => {
   });
 
   it("returns correct worstDays when there is only one qualifying drop", () => {
-    // One orange, then 10 days of non-orange
+    // One orange, then 10 days of non-orange; but there are 4 leading non-orange days too.
     const drops = [
       drop("00:00:00 - 01/01/26", "Yellow"),
-      drop("00:00:00 - 05/01/26", "Orange"),  // only qualifying drop
-      drop("00:00:00 - 15/01/26", "Yellow"),  // 10 days after
+      drop("00:00:00 - 05/01/26", "Orange"),  // only qualifying drop (4 days after start)
+      drop("00:00:00 - 15/01/26", "Yellow"),  // 10 days after orange
     ];
 
     const result = computeSpell(drops, d => d.rarity === "Orange");
-    // Only one qualifying drop → no inter-occurrence gaps; only the trailing gap of 10 days
+    // Leading gap: 4 days; trailing gap: 10 days → worstDays = 10
     expect(result.worstDays).toBe(10);
   });
 

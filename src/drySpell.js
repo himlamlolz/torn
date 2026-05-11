@@ -45,7 +45,11 @@ export function computeSpell(sorted, predicate) {
     if (occTimes.length === 0) {
       gaps.push((lastDropTime - firstDropTime) / MS_PER_DAY);
     } else {
+      // Leading gap: first drop in dataset → first qualifying drop
+      gaps.push((occTimes[0] - firstDropTime) / MS_PER_DAY);
+      // Inter-occurrence gaps
       for (let i = 1; i < occTimes.length; i++) gaps.push((occTimes[i] - occTimes[i - 1]) / MS_PER_DAY);
+      // Trailing gap: last qualifying drop → last drop in dataset
       gaps.push((lastDropTime - occTimes[occTimes.length - 1]) / MS_PER_DAY);
     }
     if (gaps.length > 0) worstDays = Math.round(Math.max(...gaps));
