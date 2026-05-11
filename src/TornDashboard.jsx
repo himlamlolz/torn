@@ -1369,11 +1369,10 @@ export default function TornDashboard() {
         if (occTimes.length === 0) {
           gaps.push((lastDropTime - firstDropTime) / MS_PER_DAY);
         } else {
-          gaps.push((occTimes[0] - firstDropTime) / MS_PER_DAY);
           for (let i = 1; i < occTimes.length; i++) gaps.push((occTimes[i] - occTimes[i-1]) / MS_PER_DAY);
           gaps.push((lastDropTime - occTimes[occTimes.length - 1]) / MS_PER_DAY);
         }
-        worstDays = Math.round(Math.max(...gaps));
+        if (gaps.length > 0) worstDays = Math.round(Math.max(...gaps));
       }
       let currentDays = null;
       if (current > 0 && firstDropTime && lastDropTime) {
